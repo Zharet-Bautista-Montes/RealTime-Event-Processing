@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copiamos e instalamos dependencias en la carpeta del usuario
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # ==============================================================================
 # STAGE 2: Runner (Imagen Final Ligera para Producción)
@@ -28,11 +28,11 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/root/.local/bin:$PATH" \
     PYTHONPATH="/app"
 
 # Copiamos las dependencias instaladas desde el Builder
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copiamos todo el código fuente del proyecto
 COPY . /app

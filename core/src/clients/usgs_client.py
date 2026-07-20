@@ -2,7 +2,7 @@ import asyncio
 import httpx
 from datetime import datetime
 from src.config.logging import setup_logger
-from src.metadata.validators import EventModel  
+from src.models.earthquake import EarthquakeModel  
 
 logger = setup_logger("usgs_client")
 
@@ -46,7 +46,7 @@ async def fetch_and_ingest_earthquakes():
                 
                 try:
                     # Validamos localmente en el cliente antes de enviar para ahorrar ancho de banda
-                    validated_event = EventModel(**payload)
+                    validated_event = EarthquakeModel(**payload)
                     
                     # Enviamos el JSON validado mediante POST asíncrono a nuestro componente de Ingesta
                     api_response = await client.post(

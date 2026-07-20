@@ -35,10 +35,10 @@ services:
   ingestion-service:
     build:
       context: .
-      dockerfile: deploy/app.Dockerfile
+      dockerfile: deploy/Dockerfile
     container_name: sismic_ingestion_api
     restart: always
-    command: bash -c "python -m src.database.indexes && uvicorn src.ingestion_main:app --host 0.0.0.0 --port ${INGESTION_PORT}"
+    command: bash -c "python -m src.database.indexes && uvicorn src.services.ingestion_service:app --host 0.0.0.0 --port ${INGESTION_PORT}"
     environment:
       - ENVIRONMENT=${ENVIRONMENT}
       - LOG_LEVEL=${LOG_LEVEL}
@@ -62,10 +62,10 @@ services:
   usgs-client:
     build:
       context: .
-      dockerfile: deploy/app.Dockerfile
+      dockerfile: deploy/Dockerfile
     container_name: sismic_usgs_client
     restart: always
-    command: python -m src.client.ingestion_client
+    command: python -m src.clients.usgs_client
     environment:
       - ENVIRONMENT=${ENVIRONMENT}
       - LOG_LEVEL=${LOG_LEVEL}
@@ -85,10 +85,10 @@ services:
   query-api:
     build:
       context: .
-      dockerfile: deploy/app.Dockerfile
+      dockerfile: deploy/Dockerfile
     container_name: sismic_query_api
     restart: always
-    command: uvicorn src.query_main:app --host 0.0.0.0 --port ${QUERY_PORT}
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port ${QUERY_PORT}
     environment:
       - ENVIRONMENT=${ENVIRONMENT}
       - LOG_LEVEL=${LOG_LEVEL}
