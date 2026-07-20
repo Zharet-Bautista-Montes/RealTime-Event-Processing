@@ -1,0 +1,143 @@
+version: '3.8'
+
+networks:
+  sismic_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. BASE DE DATOS (MongoDB)
+  # ----------------------------------------------------------------------------
+  mongodb:
+    image: mongo:6.0
+    container_name: sismic_mongodb
+    restart: always
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"
+    networks:
+      sismic_net:
+        ipv4_address: ${MONGO_HOST}
+    volumes:
+      - mongo_data:/data/db
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+
+  # ----------------------------------------------------------------------------
+  # 2. SERVICIO DE INGESTIÓN (FastAPI - Puerto 8000)
+  # ----------------------------------------------------------------------------
+  ingestion-service:
+    build:
+      context: .
+      dockerfile: deploy/app.Dockerfile
+    container_name: sismic_ingestion_api
+    restart: always
+    command: bash -c "python -m src.database.indexes && uvicorn src.ingestion_main:app --host 0.0.0.0 --port ${INGESTION_PORT}"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+    ports:
+      - "${INGESTION_PORT}:${INGESTION_PORT}"
+    networks:
+      sismic_net:
+        ipv4_address: ${INGESTION_HOST}
+    depends_on:
+      - mongodb
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # ----------------------------------------------------------------------------
+  # 3. CLIENTE DE INGESTIÓN USGS (Daemon en segundo plano)
+  # ----------------------------------------------------------------------------
+  usgs-client:
+    build:
+      context: .
+      dockerfile: deploy/app.Dockerfile
+    container_name: sismic_usgs_client
+    restart: always
+    command: python -m src.client.ingestion_client
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - INGESTION_API_URL=http://${INGESTION_HOST}:${INGESTION_PORT}/api/v1/events
+    networks:
+      - sismic_net
+    depends_on:
+      - ingestion-service
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  # ----------------------------------------------------------------------------
+  # 4. API REST DE CONSULTAS (FastAPI - Puerto 8001)
+  # ----------------------------------------------------------------------------
+  query-api:
+    build:
+      context: .
+      dockerfile: deploy/app.Dockerfile
+    container_name: sismic_query_api
+    restart: always
+    command: uvicorn src.query_main:app --host 0.0.0.0 --port ${QUERY_PORT}
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+    ports:
+      - "${QUERY_PORT}:${QUERY_PORT}"
+    networks:
+      sismic_net:
+        ipv4_address: ${QUERY_HOST}
+    depends_on:
+      - mongodb
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # ----------------------------------------------------------------------------
+  # 5. ORQUESTADOR BATCH (Apache Airflow - Puerto 8080)
+  # ----------------------------------------------------------------------------
+  airflow:
+    image: apache/airflow:2.8.1-python3.10
+    container_name: sismic_airflow
+    restart: always
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=${AIRFLOW__CORE__EXECUTOR}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=${AIRFLOW__CORE__LOAD_EXAMPLES}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - _AIRFLOW_DB_UPGRADE=true
+      - _AIRFLOW_WWW_USER_CREATE=true
+      - _AIRFLOW_WWW_USER_USERNAME=${AIRFLOW_SERVERS_USER}
+      - _AIRFLOW_WWW_USER_PASSWORD=${AIRFLOW_SERVERS_PASSWORD}
+      - _AIRFLOW_WWW_USER_EMAIL=${AIRFLOW_SERVERS_EMAIL}
+    volumes:
+      - ./src/airflow/dags:/opt/airflow/dags
+      - ./src:/opt/airflow/dags/src
+    ports:
+      - "${AIRFLOW_PORT}:${AIRFLOW_PORT}"
+    networks:
+      sismic_net:
+        ipv4_address: ${AIRFLOW_HOST}
+    depends_on:
+      - mongodb
+    command: standalone
+    deploy:
+      resources:
+        limits:
+          memory: 2.0G
+
+volumes:
+  mongo_data:

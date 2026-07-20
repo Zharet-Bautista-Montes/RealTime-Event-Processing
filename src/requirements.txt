@@ -1,0 +1,27 @@
+# ==============================================================================
+# PROCESADOR DE EVENTOS EN TIEMPO REAL - DEPENDENCIAS PRINCIPALES
+# ==============================================================================
+
+# Core & Web API Gateway
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+
+# Validación de Datos y Configuración (Pydantic V2)
+pydantic>=2.6.0
+pydantic-settings>=2.2.0
+
+# Persistencia de Datos Asíncrona (MongoDB)
+motor>=3.3.0
+pymongo>=4.6.0
+
+# Utilidades de Red y Diagnóstico
+requests>=2.31.0
+curlify>=2.2.1
+
+# ==============================================================================
+# ORQUESTACIÓN Y ANÁLISIS BATCH
+# ==============================================================================
+# Nota: En entornos de producción, Apache Airflow se instala utilizando las
+# constraints oficiales de Python para asegurar la compatibilidad total de sus
+# submódulos internos.
+apache-airflow>=2.8.0
