@@ -13,10 +13,7 @@ router = APIRouter(prefix="/api/v1/events", tags=["Ingestión de Eventos"])
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def ingest_earthquake_event(event: EarthquakeModel, background_tasks: BackgroundTasks):
-    """
-    Endpoint de alta velocidad para la ingesta de sismos en tiempo real.
-    Valida el payload entrante con Pydantic y lo persiste asíncronamente en MongoDB.
-    """
+    
     try:
         # Convertimos el modelo de Pydantic a un diccionario de Python compatible con MongoDB
         # Usamos 'by_alias=True' para guardar el campo 'id' como '_id' en Mongo
@@ -45,11 +42,6 @@ async def ingest_earthquake_event(event: EarthquakeModel, background_tasks: Back
     
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
-    """
-    Gestiona el ciclo de vida de la aplicación.
-    Garantiza que el pool de conexiones de red se abra al encender la API 
-    y se cierre de forma limpia al apagar el contenedor.
-    """
     # Fase de Inicialización (Startup)
     await db_manager.connect_to_mongo()
     logger.info("Servicio de Ingestión inicializado y escuchando en el puerto 8000...")

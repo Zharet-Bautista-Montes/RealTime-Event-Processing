@@ -25,4 +25,3 @@ curlify>=2.2.1
 # constraints oficiales de Python para asegurar la compatibilidad total de sus
 # submódulos internos.
 apache-airflow>=2.8.0
-apache-airflow-providers-standard>=1.13.0

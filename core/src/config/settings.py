@@ -1,19 +1,20 @@
 import os
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
 class MongoSettings(BaseSettings):
     """Configuración de conexión a MongoDB mediante Pydantic V2 BaseSettings."""
-    
+
+    load_dotenv()
     mongo_uri: str = Field(
-        default="mongodb://172.20.0.10:27017/events_db",
+        default=os.getenv("MONGO_URI", "mongodb://172.20.0.10:27017/events_db"),
         validation_alias="MONGO_URI"
     )
     mongo_db_name: str = Field(
-        default="events_db",
+        default=os.getenv("MONGO_DB_NAME", "events_db"),
         validation_alias="MONGO_DB_NAME"
     )
-
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

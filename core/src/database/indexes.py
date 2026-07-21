@@ -4,7 +4,6 @@ from pymongo import ASCENDING, DESCENDING
 from src.database.mongodb import db_manager
 from src.config.logging import setup_logger
 
-# Instanciamos el logger dedicado para la tarea de indexación
 logger = setup_logger("database.indexes")
 
 async def ensure_database_indexes():
@@ -43,9 +42,7 @@ async def ensure_database_indexes():
         logger.error(f"Error crítico abortando la creación de índices: {str(e)}")
         sys.exit(1)
     finally:
-        # Garantizamos el cierre de sockets pase lo que pase
         await db_manager.close_mongo_connection()
 
 if __name__ == "__main__":
-    # Comando de ejecución: python -m src.database.indexes
     asyncio.run(ensure_database_indexes())

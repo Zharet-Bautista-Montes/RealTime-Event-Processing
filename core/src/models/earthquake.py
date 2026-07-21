@@ -3,6 +3,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from src.metadata.validators import PyObjectId, SismicMagnitude
 
+# Define la estructura establecida para cada registro en Earthquakes
 class EarthquakeModel(BaseModel):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
     event_id: str = Field(..., min_length=5)

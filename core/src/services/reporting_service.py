@@ -8,6 +8,7 @@ from src.config.settings import MongoSettings
 
 logger = setup_logger("services.reporting")
 
+# Método auxiliar para obtener concretamente el lugar sin la dirección
 def extract_state_or_country(location_str: str) -> str:
     if not location_str or location_str == "Ubicación Desconocida":
         return "Desconocido"
@@ -24,8 +25,7 @@ async def generate_hourly_report(reference_time: datetime = None) -> ReportModel
     """
     settings = MongoSettings()
     
-    # Airflow ejecuta tareas de manera síncrona en sus workers, 
-    # por lo que usamos PyMongo directo para la tarea Batch.
+    # Airflow ejecuta tareas de manera síncrona en sus workers, por lo que usamos PyMongo directo para la tarea Batch.
     client = MongoClient(settings.mongo_uri)
     db = client[settings.mongo_db_name]
     
@@ -91,7 +91,7 @@ async def generate_hourly_report(reference_time: datetime = None) -> ReportModel
             "top_locations": top_locations
         }
 
-        # 5. Persistir en la colección 'Reports' vía Upsert
+        # 5. Persistir en la colección 'Reports' (Upsert: Actualiza si existe, crea si no)
         await db_manager.reports_collection.replace_one(
             {"_id": report_id},
             report_data,

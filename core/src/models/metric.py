@@ -3,8 +3,9 @@ from typing import Dict
 from pydantic import BaseModel, Field
 from src.metadata.validators import SismicMagnitude, EventCounter
 
+# Define la estructura establecida para cada registro en Metrics
 class MetricModel(BaseModel):
-    id: str = Field(..., alias="_id")  # ID compuesto (string)
+    id: str = Field(..., alias="_id")
     window: datetime
     earthquake_count: EventCounter  
     avg_magnitude: SismicMagnitude  

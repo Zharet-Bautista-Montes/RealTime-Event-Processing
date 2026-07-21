@@ -9,7 +9,6 @@ class LoggingSettings(BaseSettings):
 def setup_logger(module_name: str) -> logging.Logger:
     """
     Configura y retorna un logger estandarizado con salida estructurada hacia stdout.
-    Ideal para la recolección de logs en contenedores Docker.
     """
     settings = LoggingSettings()
     logger = logging.getLogger(module_name)

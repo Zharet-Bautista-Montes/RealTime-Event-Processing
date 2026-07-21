@@ -7,6 +7,7 @@ from src.config.logging import setup_logger
 
 logger = setup_logger("services.metrics")
 
+# Método auxiliar para obtener el rango donde se asigna la magnitud dada
 def calculate_magnitude_range_bucket(magnitude: float) -> str:
     """
     Calcula el rango de 1.0 unidad correspondiente para una magnitud dada.
@@ -25,7 +26,7 @@ async def process_event_metrics(event: EarthquakeModel) -> MetricModel:
             event_time = datetime.fromisoformat(event_time.replace("Z", "+00:00"))
         one_hour_ago = event_time - timedelta(hours=1)
 
-        # 1. Buscamos tanto en formato ISO String como en Date de Mongo para máxima compatibilidad
+        # 1. Consulta robusta con $or (Soporta ISO String y Datetime de Mongo)
         query = {
             "$or": [
                 {
@@ -63,7 +64,7 @@ async def process_event_metrics(event: EarthquakeModel) -> MetricModel:
             if mag > max_mag:
                 max_mag = mag
             
-            # Clasificación en el cubo de distribución ("0.0-0.9", "1.0-1.9", etc.)
+            # Clasificación en el rango de distribución ("0.0-0.9", "1.0-1.9", etc.)
             bucket = calculate_magnitude_range_bucket(mag)
             distribution[bucket] = distribution.get(bucket, 0) + 1
 

@@ -32,7 +32,6 @@ class MongoDBManager:
     @property
     def earthquakes_collection(self):
         if self.db is None:
-            # Fallback de inicialización perezosa si se accede sin llamar explicitamente a connect_to_database
             self.client = AsyncIOMotorClient(mongo_settings.mongo_uri)
             self.db = self.client[mongo_settings.mongo_db_name]
         return self.db["Earthquakes"]
@@ -50,7 +49,6 @@ class MongoDBManager:
             self.client = AsyncIOMotorClient(mongo_settings.mongo_uri)
             self.db = self.client[mongo_settings.mongo_db_name]
         return self.db["Reports"]
-
 
 # Instancia única reutilizable en todo el proyecto (Ingesta, Métricas, Reportes y DAGs)
 db_manager = MongoDBManager()

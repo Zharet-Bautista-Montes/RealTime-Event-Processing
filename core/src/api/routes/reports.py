@@ -10,13 +10,10 @@ router = APIRouter(prefix="/reports", tags=["Consulta de Reportes"])
 
 @router.get("", response_model=List[ReportModel], status_code=status.HTTP_200_OK)
 async def get_all_reports():
-    """
-    Retorna la totalidad de los reportes históricos consolidados almacenados en la colección Reports.
-    """
+    # Retorna la totalidad de los reportes históricos consolidados almacenados en la colección Reports.
     try:
         cursor = db_manager.reports_collection.find()
         reports_list = await cursor.to_list(length=None)
-        
         logger.info(f"Consulta exitosa: se recuperaron {len(reports_list)} reportes.")
         return reports_list
     except Exception as e:
