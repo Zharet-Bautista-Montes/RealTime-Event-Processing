@@ -123,9 +123,11 @@ services:
       - _AIRFLOW_WWW_USER_USERNAME=${AIRFLOW_SERVERS_USER}
       - _AIRFLOW_WWW_USER_PASSWORD=${AIRFLOW_SERVERS_PASSWORD}
       - _AIRFLOW_WWW_USER_EMAIL=${AIRFLOW_SERVERS_EMAIL}
+      - _PIP_ADDITIONAL_REQUIREMENTS=pymongo motor pydantic pydantic-settings httpx
     volumes:
       - ./src/airflow/dags:/opt/airflow/dags
       - ./src:/opt/airflow/dags/src
+      - ./src:/opt/airflow/src
     ports:
       - "${AIRFLOW_PORT}:${AIRFLOW_PORT}"
     networks:

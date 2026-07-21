@@ -1,6 +1,6 @@
 import asyncio
 import httpx
-from datetime import datetime
+from datetime import datetime, timezone
 from src.config.logging import setup_logger
 from src.models.earthquake import EarthquakeModel  
 
@@ -31,17 +31,18 @@ async def fetch_and_ingest_earthquakes():
                 
                 # --- TRANSFORMACIÓN DE DATOS AL ESQUEMA DE NUESTRO EVENTMODEL ---
                 # La USGS entrega el tiempo en milisegundos Unix epoch, lo pasamos a datetime UTC
-                raw_time = properties.get("time")
-                event_time_utc = (
-                    datetime.fromtimestamp(raw_time / 1000.0) 
-                    if raw_time else datetime.utcnow()
-                )
+                raw_time_ms = properties.get("time")
+                if raw_time_ms:
+                    dt_utc = datetime.fromtimestamp(raw_time_ms / 1000.0, tz=timezone.utc)
+                    event_time_iso = dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+                else:
+                    event_time_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
                 
                 payload = {
                     "event_id": feature.get("id"),  # Ej: "us6000m1ax"
                     "magnitude": float(properties.get("mag") or 0.0),
                     "location": properties.get("place", "Ubicación Desconocida"),
-                    "event_time": event_time_utc.isoformat()
+                    "event_time": event_time_iso
                 }
                 
                 try:
@@ -51,7 +52,7 @@ async def fetch_and_ingest_earthquakes():
                     # Enviamos el JSON validado mediante POST asíncrono a nuestro componente de Ingesta
                     api_response = await client.post(
                         INGESTION_API_URL, 
-                        json=validated_event.model_dump(by_alias=True)
+                        json=validated_event.model_dump(by_alias=True, mode="json")
                     )
                     
                     if api_response.status_code == 201:
@@ -81,5 +82,4 @@ async def main_loop():
         await asyncio.sleep(180)  # Pausa no bloqueante de 3 minutos
 
 if __name__ == "__main__":
-    # Comando de ejecución: python -m src.client.ingestion_client
     asyncio.run(main_loop())

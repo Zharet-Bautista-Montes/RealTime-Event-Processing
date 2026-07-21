@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, APIRouter, HTTPException, status
+from fastapi import FastAPI, APIRouter, HTTPException, status, BackgroundTasks
 from pymongo.errors import DuplicateKeyError
 from src.models.earthquake import EarthquakeModel
+from src.services.metrics_service import process_event_metrics
 from src.database.mongodb import db_manager
 from src.config.logging import setup_logger
 
@@ -11,7 +12,7 @@ logger = setup_logger("ingestion_service")
 router = APIRouter(prefix="/api/v1/events", tags=["Ingestión de Eventos"])
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def ingest_earthquake_event(event: EarthquakeModel):
+async def ingest_earthquake_event(event: EarthquakeModel, background_tasks: BackgroundTasks):
     """
     Endpoint de alta velocidad para la ingesta de sismos en tiempo real.
     Valida el payload entrante con Pydantic y lo persiste asíncronamente en MongoDB.
@@ -23,8 +24,9 @@ async def ingest_earthquake_event(event: EarthquakeModel):
         
         # Inserción asíncrona no bloqueante en la colección Earthquakes
         await db_manager.earthquakes_collection.insert_one(event_dict)
-        
         logger.debug(f"Evento {event.event_id} insertado exitosamente en Earthquakes.")
+        # Programamos el cálculo de métricas en segundo plano
+        background_tasks.add_task(process_event_metrics, event)
         return {"status": "success", "message": "Event ingested successfully", "event_id": event.event_id}
         
     except DuplicateKeyError:
