@@ -38,8 +38,7 @@
           "path": [
             "earthquakes"
           ]
-        },
-        "description": ""
+        }
       },
       "response": []
     },
@@ -73,8 +72,7 @@
           "path": [
             "metrics"
           ]
-        },
-        "description": ""
+        }
       },
       "response": []
     },
@@ -108,8 +106,37 @@
           "path": [
             "reports"
           ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Post New Event",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"event_id\": \"us7000m123\",\r\n  \"magnitude\": 4.5,\r\n  \"location\": \"12 km SW of Anchor Point, Alaska\",\r\n  \"event_time\": \"2026-07-20T23:00:00Z\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         },
-        "description": ""
+        "url": {
+          "raw": "http://localhost:8000/api/v1/events",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "events"
+          ]
+        }
       },
       "response": []
     }

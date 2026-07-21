@@ -67,7 +67,7 @@ Ejemplo:
 {
   "event_id": "us7000m123",
   "magnitude": 4.5,
-  "place": "12 km SW of Anchor Point, Alaska",
+  "location": "12 km SW of Anchor Point, Alaska",
   "event_time": "2026-07-20T23:00:00Z"
 }
 ```
